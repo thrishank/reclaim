@@ -13,7 +13,6 @@ import {
 import {
   clusterApiUrl,
   Connection,
-  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   Transaction,
@@ -22,24 +21,29 @@ import QRCode from "qrcode";
 
 const headers = createActionHeaders();
 
-const APP_ID = "0x203770F2Ff4e869b549c320415F1FF225F9dC90C";
+const APP_ID = "0x950Cab8aBF0413cDD1Bd715ea2EA5a5f54EC06Ac";
 const APP_SECRET =
-  "0xdb64eb8b95bb42c8b0b1cef1d1215a9af628893c435455666cc608a11162df8c";
+  "0x0c0787a865a2455f23e89acd88cef51d1de001e9f6a7f7d08e37ad99cd6ff71b";
 const PROVIDER_ID = "bd95d43f-e06a-4fd7-ac46-3f4c9da284f0";
 
 const init = async () => {
-  return await ReclaimProofRequest.init(APP_ID, APP_SECRET, PROVIDER_ID);
+  try {
+    return await ReclaimProofRequest.init(APP_ID, APP_SECRET, PROVIDER_ID);
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
 };
 
-export async function GET(req: Request) {
+export async function GET() {
   const reclaimProofRequest = await init();
-  const url = await reclaimProofRequest.getRequestUrl();
+  const url = await reclaimProofRequest!.getRequestUrl();
   const qrCodeDataUrl = await QRCode.toDataURL(url);
 
   const entry = await data.create({});
   const id = entry._id.toString();
 
-  reclaimProofRequest.startSession({
+  reclaimProofRequest!.startSession({
     async onSuccess(proof) {
       const user_data = JSON.parse(proof.claimData.context).extractedParameters;
       await data.updateOne(
@@ -57,12 +61,10 @@ export async function GET(req: Request) {
     },
   });
 
-  const x = await generateimage();
-
   try {
     const payload: ActionGetResponse = {
       title: "Solana Typing Speed Contest",
-      icon: x,
+      icon: qrCodeDataUrl,
       description: `Show off your typing skills in this contest and stand a chance to win SOL. The contest is simple, scan the above Qr code and verfiy your monkeytype.com account wait a couple of seconds to share the data with us and click on submit. The top 10 fastest typists will win SOL.`,
       label: "Enter the contest",
       type: "action",
@@ -107,12 +109,12 @@ export async function POST(req: Request) {
 
     const body: ActionPostRequest = await req.json();
 
-    // @ts-ignore
+    // @ts-expect-error
     const username = body.data.username;
 
     const entry = await data.findOne({ _id: id });
     if (!entry.wpm) {
-      let message =
+      const message =
         "You have not completed the verifaction with monkeytype yet please scan the qr code and complete the proof if you haven't yet. Or else refresh the page and try again";
       return Response.json({ message } as ActionError, {
         status: 403,
@@ -126,6 +128,7 @@ export async function POST(req: Request) {
     try {
       account = new PublicKey(body.account);
     } catch (err) {
+      console.log(err);
       return new Response('Invalid "account" provided', {
         status: 400,
         headers,
@@ -149,6 +152,7 @@ export async function POST(req: Request) {
       lastValidBlockHeight,
     }).add(instruction);
 
+    const final_image = await generateimage();
     const payload: ActionPostResponse = await createPostResponse({
       fields: {
         type: "transaction",
@@ -160,7 +164,7 @@ export async function POST(req: Request) {
             action: {
               type: "completed",
               title: "You have successfully completed the action",
-              icon: "https://img.freepik.com/premium-photo/cool-wallpaper-landscape-background_915164-76494.jpg",
+              icon: final_image,
               description:
                 "Congratulations, you have successfully completed the action",
               label: "completed",
