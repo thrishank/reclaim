@@ -65,6 +65,7 @@ export async function GET() {
     const payload: ActionGetResponse = {
       title: "Solana Typing Speed Contest",
       icon: qrCodeDataUrl,
+      // icon : await generateimage(),
       description: `Show off your typing skills in this contest and stand a chance to win SOL. The contest is simple, scan the above Qr code and verfiy your monkeytype.com account wait a couple of seconds to share the data with us and click on submit. The top 10 fastest typists will win SOL.`,
       label: "Enter the contest",
       type: "action",
@@ -79,6 +80,7 @@ export async function GET() {
                 type: "text",
                 name: "username",
                 label: "Enter your name for the leaderboard",
+                required: true,
               },
             ],
           },

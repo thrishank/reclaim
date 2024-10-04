@@ -1,61 +1,95 @@
 import data from "@/model/data";
-import puppeteer from "puppeteer";
+import { createCanvas } from "canvas";
+
+interface LeaderboardEntry {
+  username: string;
+  accuracy: number;
+  wpm: number;
+}
 
 export async function generateimage() {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
+  const canvas = createCanvas(800, 600);
+  const ctx = canvas.getContext("2d");
 
-  const x = await data.find();
-  const valid_data = x
-    .filter((entry) => entry.accuracy != null && entry.username != null)
-    .map((entry) => ({
-      username: entry.username,
-      accuracy: entry.accuracy,
-      wpm: entry.wpm,
+  // Get and filter data with type annotations
+  const x: any[] = await data.find();
+  const valid_data: LeaderboardEntry[] = x
+    .filter((entry: any) => entry.accuracy != null && entry.username != null)
+    .map((entry: any) => ({
+      username: entry.username as string,
+      accuracy: entry.accuracy as number,
+      wpm: entry.wpm as number,
     }));
 
-  const htmlContent = `
-    <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f8f8f8; }
-        h1 { color: #333; }
-        table { margin: auto; width: 60%; border-collapse: collapse; }
-        table, th, td { border: 1px solid black; }
-        th, td { padding: 15px; text-align: center; font-size: 20px; }
-        th { background-color: #4CAF50; color: white; }
-      </style>
-    </head>
-    <body>
-      <h1>Leaderboard</h1>
-      <table>
-        <tr>
-          <th>Username</th>
-          <th>Speed (WPM)</th>
-          <th>Accuracy</th>
-        </tr>
-        ${valid_data
-          .map(
-            (item) => `
-              <tr>
-                <td>${item.username}</td>
-                <td>${item.wpm}</td>
-                <td>${item.accuracy}</td>
-              </tr>
-            `
-          )
-          .join("")}
-      </table>
-    </body>
-    </html>
-  `;
+  // Set background
+  ctx.fillStyle = "#f8f8f8";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  await page.setContent(htmlContent);
-  await page.setViewport({ width: 800, height: 600 });
+  // Draw title
+  ctx.font = "bold 24px Arial";
+  ctx.fillStyle = "#333";
+  ctx.textAlign = "center";
+  ctx.fillText("Leaderboard", canvas.width / 2, 40);
 
-  const screenshot = await page.screenshot({ encoding: "base64" });
+  // Draw table
+  const startY = 80;
+  const rowHeight = 40;
+  const colWidths = [300, 250, 250];
 
-  await browser.close();
+  // Draw header
+  ctx.fillStyle = "#4CAF50";
+  ctx.fillRect(0, startY, canvas.width, rowHeight);
 
-  return `data:image/png;base64,${screenshot}`;
+  ctx.font = "bold 20px Arial";
+  ctx.fillStyle = "white";
+  ctx.textAlign = "center";
+  ctx.fillText("Username", colWidths[0] / 2, startY + 28);
+  ctx.fillText("Speed (WPM)", colWidths[0] + colWidths[1] / 2, startY + 28);
+  ctx.fillText(
+    "Accuracy",
+    colWidths[0] + colWidths[1] + colWidths[2] / 2,
+    startY + 28
+  );
+
+  // Draw rows
+  ctx.font = "18px Arial";
+  ctx.fillStyle = "#333";
+  valid_data.forEach((item, index) => {
+    const y = startY + (index + 1) * rowHeight;
+
+    // Alternating row colors
+    ctx.fillStyle = index % 2 === 0 ? "#ffffff" : "#f2f2f2";
+    ctx.fillRect(0, y, canvas.width, rowHeight);
+
+    ctx.fillStyle = "#333";
+    ctx.fillText(item.username, colWidths[0] / 2, y + 28);
+    ctx.fillText(item.wpm.toString(), colWidths[0] + colWidths[1] / 2, y + 28);
+    ctx.fillText(
+      item.accuracy.toString(),
+      colWidths[0] + colWidths[1] + colWidths[2] / 2,
+      y + 28
+    );
+  });
+
+  // Draw table borders
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= valid_data.length + 1; i++) {
+    const y = startY + i * rowHeight;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+  for (let i = 0; i <= 3; i++) {
+    const x = i === 0 ? 0 : colWidths.slice(0, i).reduce((a, b) => a + b, 0);
+    ctx.beginPath();
+    ctx.moveTo(x, startY);
+    ctx.lineTo(x, startY + (valid_data.length + 1) * rowHeight);
+    ctx.stroke();
+  }
+
+  // Convert canvas to buffer
+  const buffer = canvas.toBuffer("image/png");
+  return `data:image/png;base64,${buffer.toString("base64")}`;
 }

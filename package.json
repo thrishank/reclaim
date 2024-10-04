@@ -13,13 +13,13 @@
     "@solana/actions": "^1.6.5",
     "@solana/web3.js": "^1.95.3",
     "@types/qrcode": "^1.5.5",
+    "canvas": "^2.11.2",
     "mongoose": "^8.7.0",
     "next": "14.2.14",
-    "puppeteer": "^23.5.0",
+    "pino-pretty": "^11.2.2",
     "qrcode": "^1.5.4",
     "react": "^18",
-    "react-dom": "^18",
-    "pino-pretty": "^11.2.2"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
