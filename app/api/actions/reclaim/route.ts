@@ -1,4 +1,4 @@
-import { generateimage } from "@/app/image";
+import generateImage from "@/app/image";
 import data from "@/model/data";
 import { ReclaimProofRequest } from "@reclaimprotocol/js-sdk";
 
@@ -65,7 +65,7 @@ export async function GET() {
     const payload: ActionGetResponse = {
       title: "Solana Typing Speed Contest",
       icon: qrCodeDataUrl,
-      // icon : await generateimage(),
+      // icon: await generateImage(),
       description: `Show off your typing skills in this contest and stand a chance to win SOL. The contest is simple, scan the above Qr code and verfiy your monkeytype.com account wait a couple of seconds to share the data with us and click on submit. The top 10 fastest typists will win SOL.`,
       label: "Enter the contest",
       type: "action",
@@ -154,7 +154,7 @@ export async function POST(req: Request) {
       lastValidBlockHeight,
     }).add(instruction);
 
-    const final_image = await generateimage();
+    const final_image = await generateImage();
     const payload: ActionPostResponse = await createPostResponse({
       fields: {
         type: "transaction",
