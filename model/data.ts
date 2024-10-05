@@ -1,9 +1,4 @@
 import mongoose from "mongoose";
-import dbConnect from "@/lib/dbConnect";
-
-(async () => {
-  await dbConnect();
-})();
 
 export interface Type extends mongoose.Document {
   username: string;

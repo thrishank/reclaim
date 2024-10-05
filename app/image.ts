@@ -1,12 +1,30 @@
 import data from "@/model/data";
 import { createCanvas } from "canvas";
-import fs from "fs";
-import path from "path";
+
+import { v2 as cloudinary } from "cloudinary";
 
 interface LeaderboardEntry {
   username: string;
   accuracy: number;
   wpm: number;
+}
+
+cloudinary.config({
+  cloud_name: "dbe4r5mep",
+  api_key: "889519336515641",
+  api_secret: "MKx40Z2QYku1BokxfAe45JrhwTc",
+});
+
+async function upload(img_data: any, name: string) {
+  try {
+    const options = {
+      public_id: name,
+    };
+    const uploadResult = await cloudinary.uploader.upload(img_data, options);
+    return uploadResult.secure_url;
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 export default async function generateImage() {
@@ -72,24 +90,12 @@ export default async function generateImage() {
       ctx.stroke();
     });
 
-    // Convert canvas to buffer
-    const buffer = canvas.toBuffer("image/png");
+    const buffer = canvas.toDataURL("image/png");
 
-    // Generate a unique filename using the current timestamp
     const filename = `${Date.now()}.png`;
 
-    // Ensure the directory exists
-    const dir = path.join(process.cwd(), "public", "leaderboard");
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-
-    // Save the file
-    const filepath = path.join(dir, filename);
-    fs.writeFileSync(filepath, buffer);
-
-    // Return the relative path to the file
-    return `https://reclaim-qdn1.onrender.com/public/leaderboard/${filename}`;
+    const url = await upload(buffer, filename);
+    return url;
   } catch (error) {
     console.error("Error generating image:", error);
     throw new Error("Image generation failed");

@@ -1,4 +1,5 @@
 import generateImage from "@/app/image";
+import dbConnect from "@/lib/dbConnect";
 import data from "@/model/data";
 import { ReclaimProofRequest } from "@reclaimprotocol/js-sdk";
 
@@ -40,6 +41,7 @@ export async function GET() {
   const url = await reclaimProofRequest!.getRequestUrl();
   const qrCodeDataUrl = await QRCode.toDataURL(url);
 
+  await dbConnect();
   const entry = await data.create({});
   const id = entry._id.toString();
 
@@ -65,7 +67,7 @@ export async function GET() {
     const payload: ActionGetResponse = {
       title: "Solana Typing Speed Contest",
       icon: qrCodeDataUrl,
-      // icon: await generateImage(),
+      // icon: (await generateImage()) || "",
       description: `Show off your typing skills in this contest and stand a chance to win SOL. The contest is simple, scan the above Qr code and verfiy your monkeytype.com account wait a couple of seconds to share the data with us and click on submit. The top 10 fastest typists will win SOL.`,
       label: "Enter the contest",
       type: "action",
@@ -110,7 +112,7 @@ export async function POST(req: Request) {
     const id = url.searchParams.get("id");
 
     const body: ActionPostRequest = await req.json();
-
+    await dbConnect();
     // @ts-expect-error
     const username = body.data.username;
 
@@ -166,7 +168,7 @@ export async function POST(req: Request) {
             action: {
               type: "completed",
               title: "You have successfully completed the action",
-              icon: final_image,
+              icon: final_image!,
               description:
                 "Congratulations, you have successfully completed the action",
               label: "completed",
