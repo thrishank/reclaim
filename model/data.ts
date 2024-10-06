@@ -21,6 +21,13 @@ const dataSchema = new mongoose.Schema<Type>({
   },
 });
 
+const aadharSchema = new mongoose.Schema({
+  isVerified: {
+    type: Boolean,
+  },
+});
+
+const aadhar = mongoose.models.aadhar || mongoose.model<Type>("aadhar", aadharSchema);
 const data = mongoose.models.data || mongoose.model<Type>("data", dataSchema);
 
 export default data;
