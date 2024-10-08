@@ -5,9 +5,13 @@ export interface Type extends mongoose.Document {
   accuracy: number;
   wpm: number;
   enter_contest: boolean;
+  email: string;
 }
 const dataSchema = new mongoose.Schema<Type>({
   username: {
+    type: String,
+  },
+  email: {
     type: String,
   },
   accuracy: {

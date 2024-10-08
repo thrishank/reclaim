@@ -48,6 +48,7 @@ export async function GET() {
   reclaimProofRequest!.startSession({
     async onSuccess(proof) {
       const user_data = JSON.parse(proof.claimData.context).extractedParameters;
+      console.log(proof);
       await data.updateOne(
         { _id: entry._id },
         {
@@ -65,10 +66,10 @@ export async function GET() {
 
   try {
     const payload: ActionGetResponse = {
-      title: "Solana Typing Speed Contest",
+      title: "Typing Speed Contest",
       icon: qrCodeDataUrl,
-      // icon: (await generateImage()) || "",
-      description: `Show off your typing skills in this contest and stand a chance to win SOL. The contest is simple, scan the above Qr code and verfiy your monkeytype.com account wait a couple of seconds to share the data with us and click on submit. The top 10 fastest typists will win SOL.`,
+      // icon: (await generateImage("thrishank")) || "",
+      description: `Show off your typing skills in this contest and stand a chance to win SOL. The contest is simple, scan the above Qr code and verfiy your monkeytype.com account wait a couple of seconds to share the data with us and click on submit on the blinks. The top 10 fastest persons will win SOL.`,
       label: "Enter the contest",
       type: "action",
       links: {
@@ -81,8 +82,13 @@ export async function GET() {
               {
                 type: "text",
                 name: "username",
-                label: "Enter your name for the leaderboard",
+                label: "Enter your name to display on leaderboard",
                 required: true,
+              },
+              {
+                type: "email",
+                name: "email",
+                label: "Enter your email to contact you",
               },
             ],
           },
@@ -113,8 +119,11 @@ export async function POST(req: Request) {
 
     const body: ActionPostRequest = await req.json();
     await dbConnect();
+
     // @ts-expect-error
     const username = body.data.username;
+    // @ts-expect-error
+    const email = body.data.email;
 
     const entry = await data.findOne({ _id: id });
     if (!entry.wpm) {
@@ -126,7 +135,7 @@ export async function POST(req: Request) {
       });
     }
 
-    await data.updateOne({ _id: id }, { $set: { username } });
+    await data.updateOne({ _id: id }, { $set: { username, email } });
 
     let account: PublicKey;
     try {
@@ -156,7 +165,7 @@ export async function POST(req: Request) {
       lastValidBlockHeight,
     }).add(instruction);
 
-    const final_image = await generateImage();
+    const final_image = await generateImage(username);
     const payload: ActionPostResponse = await createPostResponse({
       fields: {
         type: "transaction",
