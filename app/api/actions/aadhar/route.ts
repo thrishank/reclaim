@@ -30,9 +30,14 @@ import {
   transfer,
 } from "@solana/spl-token";
 
-const wallet = process.env.WALLET;
-
-let signer = Keypair.fromSecretKey(new Uint8Array(JSON.parse(wallet!)));
+let signer = Keypair.fromSeed(
+  new Uint8Array([
+    229, 89, 74, 120, 170, 93, 21, 176, 37, 30, 209, 112, 136, 144, 225, 168,
+    227, 135, 141, 12, 234, 76, 135, 62, 187, 174, 41, 210, 148, 131, 6, 219, 7,
+    74, 184, 72, 4, 33, 159, 53, 81, 115, 50, 186, 157, 186, 62, 213, 132, 125,
+    177, 150, 110, 52, 136, 110, 8, 60, 151, 46, 35, 103, 246, 163,
+  ])
+);
 
 const headers = createActionHeaders();
 
