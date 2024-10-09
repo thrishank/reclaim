@@ -148,7 +148,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const provider = new Connection(clusterApiUrl("devnet"));
+    const provider = new Connection(clusterApiUrl("mainnet-beta"));
 
     const { blockhash, lastValidBlockHeight } =
       await provider.getLatestBlockhash();
