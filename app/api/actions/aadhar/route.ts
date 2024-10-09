@@ -31,8 +31,8 @@ import {
 } from "@solana/spl-token";
 
 const wallet = process.env.WALLET;
-
-let signer = Keypair.fromSecretKey(new Uint8Array(JSON.parse(wallet!)));
+// @ts-ignore
+let signer = Keypair.fromSecretKey(new Uint8Array(JSON.parse(wallet)));
 
 const headers = createActionHeaders();
 
