@@ -15,11 +15,24 @@ import {
 import {
   clusterApiUrl,
   Connection,
+  Keypair,
+  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
 import QRCode from "qrcode";
+import { createNFT } from "./nft";
+import {
+  createAssociatedTokenAccount,
+  getAssociatedTokenAddress,
+  getOrCreateAssociatedTokenAccount,
+  transfer,
+} from "@solana/spl-token";
+
+const wallet = process.env.WALLET;
+
+let signer = Keypair.fromSecretKey(new Uint8Array(JSON.parse(wallet!)));
 
 const headers = createActionHeaders();
 
@@ -49,6 +62,7 @@ export async function GET() {
   reclaimProofRequest!.startSession({
     async onSuccess(proof) {
       const user_data = JSON.parse(proof.claimData.context).extractedParameters;
+      console.log(proof);
       await aadhar.updateOne(
         { _id: entry._id },
         {
@@ -67,14 +81,13 @@ export async function GET() {
     const payload: ActionGetResponse = {
       title: "Get your aadhar nft",
       icon: qrCodeDataUrl,
-      // icon: (await generateImage()) || "",
       description: "Verify your aadhar number to get your aadhar nft",
       label: "Verify",
       type: "action",
       links: {
         actions: [
           {
-            label: "Submit",
+            label: "Mint NFT",
             href: `/api/actions/aadhar?id=${id}`,
             type: "post",
           },
@@ -126,15 +139,41 @@ export async function POST(req: Request) {
       });
     }
 
-    const provider = new Connection(clusterApiUrl("devnet"));
+    const provider = new Connection(clusterApiUrl("devnet"), {
+      commitment: "confirmed",
+    });
 
     const { blockhash, lastValidBlockHeight } =
       await provider.getLatestBlockhash();
 
+    const nft = await createNFT();
+    const mint_address = new PublicKey(nft!);
+
+    const from = await getAssociatedTokenAddress(
+      mint_address,
+      signer.publicKey
+    );
+
+    const to = await getOrCreateAssociatedTokenAccount(
+      provider,
+      signer,
+      mint_address,
+      account
+    );
+
+    const signature = await transfer(
+      provider,
+      signer,
+      from,
+      to.address,
+      signer,
+      1
+    );
+
     const instruction = SystemProgram.transfer({
       fromPubkey: account,
       toPubkey: new PublicKey("EXBdeRCdiNChKyD7akt64n9HgSXEpUtpPEhmbnm4L6iH"),
-      lamports: 0,
+      lamports: 0.01 * LAMPORTS_PER_SOL,
     });
 
     const tx = new Transaction({
@@ -147,8 +186,7 @@ export async function POST(req: Request) {
       fields: {
         type: "transaction",
         transaction: tx,
-        message:
-          "You have successfully verified your aadhar. Now check your wallet for the nft",
+        message: `You have successfully verified your aadhar and minted the NFT.  Check this address ${account} wallet to view it. And here is the signature:  ${signature}`,
       },
     });
     return Response.json(payload, { headers });
