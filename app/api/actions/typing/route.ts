@@ -76,7 +76,7 @@ export async function GET() {
         actions: [
           {
             label: "Enter the Contest 0.001 SOL",
-            href: `/api/actions/reclaim?id=${id}`,
+            href: `/api/actions/typing?id=${id}`,
             type: "post",
             parameters: [
               {
