@@ -49,7 +49,6 @@ export async function GET() {
   reclaimProofRequest!.startSession({
     async onSuccess(proof) {
       const user_data = JSON.parse(proof.claimData.context).extractedParameters;
-      console.log(proof);
       await data.updateOne(
         { _id: entry._id },
         {
