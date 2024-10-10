@@ -14,6 +14,7 @@ import {
 import {
   clusterApiUrl,
   Connection,
+  LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   Transaction,
@@ -68,14 +69,13 @@ export async function GET() {
     const payload: ActionGetResponse = {
       title: "Typing Speed Contest",
       icon: qrCodeDataUrl,
-      // icon: (await generateImage("thrishank")) || "",
       description: `Show off your typing skills in this contest and stand a chance to win SOL. The contest is simple, scan the above Qr code and verfiy your monkeytype.com account wait a couple of seconds to share the data with us and click on submit on the blinks. The top 10 fastest persons will win SOL.`,
       label: "Enter the contest",
       type: "action",
       links: {
         actions: [
           {
-            label: "Submit",
+            label: "Enter the Contest 0.001 SOL",
             href: `/api/actions/reclaim?id=${id}`,
             type: "post",
             parameters: [
@@ -156,7 +156,7 @@ export async function POST(req: Request) {
     const instruction = SystemProgram.transfer({
       fromPubkey: account,
       toPubkey: new PublicKey("EXBdeRCdiNChKyD7akt64n9HgSXEpUtpPEhmbnm4L6iH"),
-      lamports: 0,
+      lamports: 0.001 * LAMPORTS_PER_SOL,
     });
 
     const tx = new Transaction({
